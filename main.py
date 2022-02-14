@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import pandas as pd
 import json
+import time
 
 
 def get_timestamp(df):
@@ -102,32 +103,79 @@ def get_emergence(df):
 
 
 if __name__ == '__main__':
-    with open(sys.argv[1], 'r+') as f:
-        data = json.load(f)
-    input_df = pd.DataFrame(data)
-    df = get_timestamp(input_df)
-    df = get_wind_velocity_class(df)
-    Lres_med, Vres_mean, Nres = get_median_residual(df)
-    Lamb_med, Vamb_mean, Namb = get_median_ambient(df)
-    Lres_med_cent = get_centered_median(Lres_med, Vres_mean, Nres)
-    Lamb_med_cent = get_centered_median(Lamb_med, Vamb_mean, Namb)
-    crit_amb = check_ambient_criteria(Lamb_med_cent, Namb)
-    crit_res = check_residual_criteria(Lres_med_cent)
-    output = {'Vk': np.arange(1, 13),
-               'Namb': Namb,
-               'Vamb_mean': Vamb_mean,
-               'Lamb_med': Lamb_med,
-               'Lamb_med_cent': Lamb_med_cent,
-               'Nres': Nres,
-               'Vres_mean': Vres_mean,
-               'Lres_med': Lres_med,
-               'Lres_med_cent': Lres_med_cent,
-               'Camb': crit_amb,
-               'Cres': crit_res}
-    df_output = pd.DataFrame(output)
+
+    ### Format Input ###
+    ts = time.time()
+    rawConfiguration = sys.stdin.readline()
+    configuration = json.loads(rawConfiguration)
+    arguments = configuration['arguments']
+
+    rawDataStream = sys.stdin.readline()
+    dataStream = json.loads(rawDataStream)
+    inputHeaders = {val: idx for idx, val in enumerate(
+        dataStream['data']['object']['data']['Headers'])}
+    inputData = dataStream['data']['object']['data']['Data']
+    inputDuration = dataStream['duration']
+
+
+    ### Compute data ### to do Matteo
+    # function specific treatement
+    ###
+    input_df = {snValue: [] for snValue in inputData}
+
+    for snValue in inputData:
+        for row in inputData[snValue]:
+            df = get_timestamp(input_df)
+            df = get_wind_velocity_class(df)
+            Lres_med, Vres_mean, Nres = get_median_residual(df)
+            Lamb_med, Vamb_mean, Namb = get_median_ambient(df)
+            Lres_med_cent = get_centered_median(Lres_med, Vres_mean, Nres)
+            Lamb_med_cent = get_centered_median(Lamb_med, Vamb_mean, Namb)
+            crit_amb = check_ambient_criteria(Lamb_med_cent, Namb)
+            crit_res = check_residual_criteria(Lres_med_cent)
+            output = {'Vk': np.arange(1, 13),
+                    'Namb': Namb,
+                    'Vamb_mean': Vamb_mean,
+                    'Lamb_med': Lamb_med,
+                    'Lamb_med_cent': Lamb_med_cent,
+                    'Nres': Nres,
+                    'Vres_mean': Vres_mean,
+                    'Lres_med': Lres_med,
+                    'Lres_med_cent': Lres_med_cent,
+                    'Camb': crit_amb,
+                    'Cres': crit_res}
+            input_df[snValue].append([row[inputHeaders['tss']],
+                                row[inputHeaders['tse']], output['Namb']])
+
+
+    ### Generate output ###
+    output = {
+        'data': {
+            'object': {
+                'data': {
+                    # TODO : define ouptput names
+                    'Headers': ["tss", "tse", "mediane_bruit_ambiant_3"],
+                    'Data': input_df
+                }
+            }
+        },
+        'duration': inputDuration,
+        'scriptDuration': int((time.time()-ts)*1000),
+        'input': dataStream
+    }
+    print(json.dumps(output))
+
+    
+
+
+    """with open(sys.argv[1], 'r+') as f:
+        data = json.load(f)*/
+    input_df = pd.DataFrame(data)"""
+    
+    """df_output = pd.DataFrame(output)
     df_output['Lemergence'] = get_emergence(df_output)
     print(df_output)
-    df_output.to_json(path_or_buf='output_data/output_data.json', orient='index', indent=4)
+    df_output.to_json(path_or_buf='output_data/output_data.json', orient='index', indent=4)"""
 
 
 
