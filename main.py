@@ -4,6 +4,58 @@ import pandas as pd
 import json
 import time
 
+### Inputs ###
+#
+# configuration : {
+#   arguments : { [name:string] : string}
+# }
+#
+# dataStream : {
+#   data : {
+#       object: {
+#           data : {
+#               Headers : ["tss" , "tse", "input", "param1", ..."paramN"],
+#               Data : { [snValue: number] : [
+#                               [<tss_1>, <tse_1>, <input_1>, <param1_1>, ...<paramN_1>],
+#                               [<tss_2>, <tse_2>, <input_2>, <param1_2>, ...<paramN_2>],
+#                               ...
+#                               [<tss_n>, <tse_n>, <input_n>, <param1_n>, ...<paramN_n>],
+#                           ]
+#               },
+#               filterParameters : {
+#                   startDateUTC: number;
+#                   endDateUTC: number;
+#                   timeFrameAggregation: string | number;
+#                   filters_SNS: SQLFilter[];
+#                   filters_PARAMETERS: SQLFilter[];
+#                   filters_CONTEXTUALS: number[];
+#                   userTimeZone: string;
+#               },
+#           }
+#       }
+#   },
+#   duration: number (SQL request duration in ms)
+# }
+#
+# Note: input and params can be recieved in any order.
+#       A dict "inputHeaders" is created to map input and params with their positions
+####
+
+
+### Output ###
+# output : {
+#   data : {
+#       object: {
+#           data : {
+#               Headers : ["tss" , "tse", <name_of_first_output1>, ...<name_of_first_outputn>],
+#               Data : { [snValue: number] : number[][] }
+#           }
+#       }
+#   },
+#   duration: number,
+#   scriptDuration: number
+# }
+###
 
 def get_timestamp(df):
     # >> check IoTExpress format <<
