@@ -57,6 +57,7 @@ import time
 # }
 ###
 
+
 def get_timestamp(df):
     # >> check IoTExpress format <<
     df['timestamp'] = pd.to_datetime(df['timestamp'], format=' %d/%m/%Y %H:%M').astype('datetime64[s]')
@@ -157,48 +158,69 @@ def get_emergence(df):
 if __name__ == '__main__':
 
     ### Format Input ###
-    ts = time.time()
-    rawConfiguration = sys.stdin.readline()
-    configuration = json.loads(rawConfiguration)
-    arguments = configuration['arguments']
+    # ts = time.time()
+    # rawConfiguration = sys.stdin.readline()
+    # configuration = json.loads(rawConfiguration)
+    # arguments = configuration['arguments']
+    #
+    # rawDataStream = sys.stdin.readline()
+    # dataStream = json.loads(rawDataStream)
+    # inputHeaders = {val: idx for idx, val in enumerate(
+    #     dataStream['data']['object']['data']['Headers'])}
+    # inputData = dataStream['data']['object']['data']['Data']
+    # inputDuration = dataStream['duration']
 
-    rawDataStream = sys.stdin.readline()
-    dataStream = json.loads(rawDataStream)
+    ### Load Inputs dev Delhom ###
+    ts = time.time()
+    with open('input_data/arguments.json', 'r') as f:
+        arguments = json.load(f)
+    with open('input_data/input.json', 'r') as f:
+        dataStream = json.load(f)
     inputHeaders = {val: idx for idx, val in enumerate(
         dataStream['data']['object']['data']['Headers'])}
     inputData = dataStream['data']['object']['data']['Data']
     inputDuration = dataStream['duration']
 
 
+
     ### Compute data ### to do Matteo
     # function specific treatement
     ###
-    input_df = {snValue: [] for snValue in inputData}
+    output_dict = {snValue: [] for snValue in inputData}
 
+    header_tab = dict(zip(inputHeaders, ['timestamp', 'tse', 'wind_velocity_mean', 'wind_direction', 'chronogram', 'L50eq']))
     for snValue in inputData:
-        for row in inputData[snValue]:
-            df = get_timestamp(input_df)
-            df = get_wind_velocity_class(df)
-            Lres_med, Vres_mean, Nres = get_median_residual(df)
-            Lamb_med, Vamb_mean, Namb = get_median_ambient(df)
-            Lres_med_cent = get_centered_median(Lres_med, Vres_mean, Nres)
-            Lamb_med_cent = get_centered_median(Lamb_med, Vamb_mean, Namb)
-            crit_amb = check_ambient_criteria(Lamb_med_cent, Namb)
-            crit_res = check_residual_criteria(Lres_med_cent)
-            output = {'Vk': np.arange(1, 13),
-                    'Namb': Namb,
-                    'Vamb_mean': Vamb_mean,
-                    'Lamb_med': Lamb_med,
-                    'Lamb_med_cent': Lamb_med_cent,
-                    'Nres': Nres,
-                    'Vres_mean': Vres_mean,
-                    'Lres_med': Lres_med,
-                    'Lres_med_cent': Lres_med_cent,
-                    'Camb': crit_amb,
-                    'Cres': crit_res}
-            input_df[snValue].append([row[inputHeaders['tss']],
-                                row[inputHeaders['tse']], output['Namb']])
-
+        df = pd.DataFrame(inputData[snValue], columns=header_tab.values())
+        df = get_wind_velocity_class(df)
+        Lres_med, Vres_mean, Nres = get_median_residual(df)
+        Lamb_med, Vamb_mean, Namb = get_median_ambient(df)
+        Lres_med_cent = get_centered_median(Lres_med, Vres_mean, Nres)
+        Lamb_med_cent = get_centered_median(Lamb_med, Vamb_mean, Namb)
+        crit_amb = check_ambient_criteria(Lamb_med_cent, Namb)
+        crit_res = check_residual_criteria(Lres_med_cent)
+        output_sn = {'Vk': np.arange(1, 13),
+                'Namb': Namb,
+                'Vamb_mean': Vamb_mean,
+                'Lamb_med': Lamb_med,
+                'Lamb_med_cent': Lamb_med_cent,
+                'Nres': Nres,
+                'Vres_mean': Vres_mean,
+                'Lres_med': Lres_med,
+                'Lres_med_cent': Lres_med_cent,
+                'Camb': crit_amb,
+                'Cres': crit_res}
+        df_output_sn = pd.DataFrame(output_sn)
+        df_output_sn['Lemergence'] = get_emergence(df_output_sn)
+        sublist = [[dataStream['data']['object']['filterParameters']['startDateUTC']],
+                   [dataStream['data']['object']['filterParameters']['endDateUTC']],
+                   df_output_sn['Namb'],
+                   df_output_sn['Vamb_mean'],
+                   df_output_sn['Lamb_med_cent'],
+                   df_output_sn['Nres'],
+                   df_output_sn['Vres_mean'],
+                   df_output_sn['Lres_med_cent'],
+                   df_output_sn['Lemergence']]
+        output_dict[snValue] = [value for s in sublist for value in s]
 
     ### Generate output ###
     output = {
@@ -206,8 +228,94 @@ if __name__ == '__main__':
             'object': {
                 'data': {
                     # TODO : define ouptput names
-                    'Headers': ["tss", "tse", "mediane_bruit_ambiant_3"],
-                    'Data': input_df
+                    'Headers': ["tss",
+                                "tse",
+                                "Namb_1",
+                                "Namb_2",
+                                "Namb_3",
+                                "Namb_4",
+                                "Namb_5",
+                                "Namb_6",
+                                "Namb_7",
+                                "Namb_8",
+                                "Namb_9",
+                                "Namb_10",
+                                "Namb_11",
+                                "Namb_12",
+                                "Wamb_mean_1",
+                                "Wamb_mean_2",
+                                "Wamb_mean_3",
+                                "Wamb_mean_4",
+                                "Wamb_mean_5",
+                                "Wamb_mean_6",
+                                "Wamb_mean_7",
+                                "Wamb_mean_8",
+                                "Wamb_mean_9",
+                                "Wamb_mean_10",
+                                "Wamb_mean_11",
+                                "Wamb_mean_12",
+                                "Lamb_med_cent_1",
+                                "Lamb_med_cent_2",
+                                "Lamb_med_cent_3",
+                                "Lamb_med_cent_4",
+                                "Lamb_med_cent_5",
+                                "Lamb_med_cent_6",
+                                "Lamb_med_cent_7",
+                                "Lamb_med_cent_8",
+                                "Lamb_med_cent_9",
+                                "Lamb_med_cent_10",
+                                "Lamb_med_cent_11",
+                                "Lamb_med_cent_12"
+                                "Nres_1",
+                                "Nres_2",
+                                "Nres_3",
+                                "Nres_4",
+                                "Nres_5",
+                                "Nres_6",
+                                "Nres_7",
+                                "Nres_8",
+                                "Nres_9",
+                                "Nres_10",
+                                "Nres_11",
+                                "Nres_12",
+                                "Wres_1",
+                                "Wres_2",
+                                "Wres_3",
+                                "Wres_4",
+                                "Wres_5",
+                                "Wres_6",
+                                "Wres_7",
+                                "Wres_8",
+                                "Wres_9",
+                                "Wres_10",
+                                "Wres_11",
+                                "Wres_12",
+                                "Lres_cent_med_1",
+                                "Lres_cent_med_2",
+                                "Lres_cent_med_3",
+                                "Lres_cent_med_4",
+                                "Lres_cent_med_5",
+                                "Lres_cent_med_6",
+                                "Lres_cent_med_7",
+                                "Lres_cent_med_8",
+                                "Lres_cent_med_9",
+                                "Lres_cent_med_10",
+                                "Lres_cent_med_11",
+                                "Lres_cent_med_12",
+                                "Lemergence_1",
+                                "Lemergence_2",
+                                "Lemergence_3",
+                                "Lemergence_4",
+                                "Lemergence_5",
+                                "Lemergence_6",
+                                "Lemergence_7",
+                                "Lemergence_8",
+                                "Lemergence_9",
+                                "Lemergence_10",
+                                "Lemergence_11",
+                                "Lemergence_12",
+                                ],
+                    'Data': output_dict
                 }
             }
         },
@@ -217,17 +325,6 @@ if __name__ == '__main__':
     }
     print(json.dumps(output))
 
-    
-
-
-    """with open(sys.argv[1], 'r+') as f:
-        data = json.load(f)*/
-    input_df = pd.DataFrame(data)"""
-    
-    """df_output = pd.DataFrame(output)
-    df_output['Lemergence'] = get_emergence(df_output)
-    print(df_output)
-    df_output.to_json(path_or_buf='output_data/output_data.json', orient='index', indent=4)"""
 
 
 
