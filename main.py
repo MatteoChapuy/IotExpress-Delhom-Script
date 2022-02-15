@@ -158,28 +158,28 @@ def get_emergence(df):
 if __name__ == '__main__':
 
     ### Format Input ###
-    # ts = time.time()
-    # rawConfiguration = sys.stdin.readline()
-    # configuration = json.loads(rawConfiguration)
-    # arguments = configuration['arguments']
-    #
-    # rawDataStream = sys.stdin.readline()
-    # dataStream = json.loads(rawDataStream)
-    # inputHeaders = {val: idx for idx, val in enumerate(
-    #     dataStream['data']['object']['data']['Headers'])}
-    # inputData = dataStream['data']['object']['data']['Data']
-    # inputDuration = dataStream['duration']
-
-    ### Load Inputs dev Delhom ###
     ts = time.time()
-    with open('input_data/arguments.json', 'r') as f:
-        arguments = json.load(f)
-    with open('input_data/input.json', 'r') as f:
-        dataStream = json.load(f)
+    rawConfiguration = sys.stdin.readline()
+    configuration = json.loads(rawConfiguration)
+    arguments = configuration['arguments']
+
+    rawDataStream = sys.stdin.readline()
+    dataStream = json.loads(rawDataStream)
     inputHeaders = {val: idx for idx, val in enumerate(
         dataStream['data']['object']['data']['Headers'])}
     inputData = dataStream['data']['object']['data']['Data']
     inputDuration = dataStream['duration']
+
+    ### Load Inputs dev Delhom ###
+    # ts = time.time()
+    # with open('input_data/arguments.json', 'r') as f:
+    #     arguments = json.load(f)
+    # with open('input_data/input.json', 'r') as f:
+    #     dataStream = json.load(f)
+    # inputHeaders = {val: idx for idx, val in enumerate(
+    #     dataStream['data']['object']['data']['Headers'])}
+    # inputData = dataStream['data']['object']['data']['Data']
+    # inputDuration = dataStream['duration']
 
 
 
@@ -213,13 +213,13 @@ if __name__ == '__main__':
         df_output_sn['Lemergence'] = get_emergence(df_output_sn)
         sublist = [[dataStream['data']['object']['filterParameters']['startDateUTC']],
                    [dataStream['data']['object']['filterParameters']['endDateUTC']],
-                   df_output_sn['Namb'],
-                   df_output_sn['Vamb_mean'],
-                   df_output_sn['Lamb_med_cent'],
-                   df_output_sn['Nres'],
-                   df_output_sn['Vres_mean'],
-                   df_output_sn['Lres_med_cent'],
-                   df_output_sn['Lemergence']]
+                   df_output_sn['Namb'].fillna(""),
+                   df_output_sn['Vamb_mean'].fillna(""),
+                   df_output_sn['Lamb_med_cent'].fillna(""),
+                   df_output_sn['Nres'].fillna(""),
+                   df_output_sn['Vres_mean'].fillna(""),
+                   df_output_sn['Lres_med_cent'].fillna(""),
+                   df_output_sn['Lemergence'].fillna("")]
         output_dict[snValue] = [value for s in sublist for value in s]
 
     ### Generate output ###
