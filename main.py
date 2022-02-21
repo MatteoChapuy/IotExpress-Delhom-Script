@@ -220,7 +220,7 @@ if __name__ == '__main__':
                    df_output_sn['Vres_mean'].fillna(""),
                    df_output_sn['Lres_med_cent'].fillna(""),
                    df_output_sn['Lemergence'].fillna("")]
-        output_dict[snValue] = [value for s in sublist for value in s]
+        output_dict[snValue] = [[value for s in sublist for value in s]]
 
     ### Generate output ###
     output = {
@@ -265,7 +265,7 @@ if __name__ == '__main__':
                                 "Lamb_med_cent_9",
                                 "Lamb_med_cent_10",
                                 "Lamb_med_cent_11",
-                                "Lamb_med_cent_12"
+                                "Lamb_med_cent_12",
                                 "Nres_1",
                                 "Nres_2",
                                 "Nres_3",
