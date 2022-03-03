@@ -87,7 +87,6 @@ def get_median_ambient(df):
 
 
 def get_median_residual(df):
-    print(df)
     Lres_med = []
     Vres_mean = []
     Nres = []
