@@ -159,28 +159,28 @@ def get_emergence(df):
 if __name__ == '__main__':
 
     ### Format Input ###
-    # ts = time.time()
-    # rawConfiguration = sys.stdin.readline()
-    # configuration = json.loads(rawConfiguration)
-    # arguments = configuration['arguments']
-    #
-    # rawDataStream = sys.stdin.readline()
-    # dataStream = json.loads(rawDataStream)
-    # inputHeaders = {val: idx for idx, val in enumerate(
-    #     dataStream['data']['object']['data']['Headers'])}
-    # inputData = dataStream['data']['object']['data']['Data']
-    # inputDuration = dataStream['duration']
-
-    ### Load Inputs dev Delhom ###
     ts = time.time()
-    with open('input_data/arguments.json', 'r') as f:
-        arguments = json.load(f)
-    with open('input_data/input.json', 'r') as f:
-        dataStream = json.load(f)
+    rawConfiguration = sys.stdin.readline()
+    configuration = json.loads(rawConfiguration)
+    arguments = configuration['arguments']
+
+    rawDataStream = sys.stdin.readline()
+    dataStream = json.loads(rawDataStream)
     inputHeaders = {val: idx for idx, val in enumerate(
         dataStream['data']['object']['data']['Headers'])}
     inputData = dataStream['data']['object']['data']['Data']
     inputDuration = dataStream['duration']
+
+    ### Load Inputs dev Delhom ###
+    # ts = time.time()
+    # with open('input_data/arguments.json', 'r') as f:
+    #     arguments = json.load(f)
+    # with open('input_data/input.json', 'r') as f:
+    #     dataStream = json.load(f)
+    # inputHeaders = {val: idx for idx, val in enumerate(
+    #     dataStream['data']['object']['data']['Headers'])}
+    # inputData = dataStream['data']['object']['data']['Data']
+    # inputDuration = dataStream['duration']
 
     # function specific treatement
     output_dict = {snValue: [] for snValue in inputData}
