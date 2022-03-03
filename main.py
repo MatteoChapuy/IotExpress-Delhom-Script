@@ -320,8 +320,7 @@ if __name__ == '__main__':
         'scriptDuration': int((time.time()-ts)*1000),
         'input': dataStream
     }
-    # print(json.dumps(output))
-    print(output['data']['object']['data']['Data'])
+    print(json.dumps(output))
 
 
 
