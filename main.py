@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import json
 import time
-
+pd.set_option("display.max_columns", None)
 ### Inputs ###
 #
 # configuration : {
@@ -87,6 +87,7 @@ def get_median_ambient(df):
 
 
 def get_median_residual(df):
+    print(df)
     Lres_med = []
     Vres_mean = []
     Nres = []
@@ -158,37 +159,33 @@ def get_emergence(df):
 if __name__ == '__main__':
 
     ### Format Input ###
-    ts = time.time()
-    rawConfiguration = sys.stdin.readline()
-    configuration = json.loads(rawConfiguration)
-    arguments = configuration['arguments']
-
-    rawDataStream = sys.stdin.readline()
-    dataStream = json.loads(rawDataStream)
-    inputHeaders = {val: idx for idx, val in enumerate(
-        dataStream['data']['object']['data']['Headers'])}
-    inputData = dataStream['data']['object']['data']['Data']
-    inputDuration = dataStream['duration']
-
-    ### Load Inputs dev Delhom ###
     # ts = time.time()
-    # with open('input_data/arguments.json', 'r') as f:
-    #     arguments = json.load(f)
-    # with open('input_data/input.json', 'r') as f:
-    #     dataStream = json.load(f)
+    # rawConfiguration = sys.stdin.readline()
+    # configuration = json.loads(rawConfiguration)
+    # arguments = configuration['arguments']
+    #
+    # rawDataStream = sys.stdin.readline()
+    # dataStream = json.loads(rawDataStream)
     # inputHeaders = {val: idx for idx, val in enumerate(
     #     dataStream['data']['object']['data']['Headers'])}
     # inputData = dataStream['data']['object']['data']['Data']
     # inputDuration = dataStream['duration']
 
+    ### Load Inputs dev Delhom ###
+    ts = time.time()
+    with open('input_data/arguments.json', 'r') as f:
+        arguments = json.load(f)
+    with open('input_data/input.json', 'r') as f:
+        dataStream = json.load(f)
+    inputHeaders = {val: idx for idx, val in enumerate(
+        dataStream['data']['object']['data']['Headers'])}
+    inputData = dataStream['data']['object']['data']['Data']
+    inputDuration = dataStream['duration']
 
-
-    ### Compute data ### to do Matteo
     # function specific treatement
-    ###
     output_dict = {snValue: [] for snValue in inputData}
 
-    header_tab = dict(zip(inputHeaders, ['timestamp', 'tse', 'wind_velocity_mean', 'wind_direction', 'chronogram', 'L50eq']))
+    header_tab = dict(zip(inputHeaders, ['timestamp', 'tse', 'chronogram', 'wind_direction', 'wind_velocity_mean', 'L50eq']))
     for snValue in inputData:
         df = pd.DataFrame(inputData[snValue], columns=header_tab.values())
         df = get_wind_velocity_class(df)
@@ -227,7 +224,7 @@ if __name__ == '__main__':
         'data': {
             'object': {
                 'data': {
-                    # TODO : define ouptput names
+                      # TODO : define ouptput names
                     'Headers': ["tss",
                                 "tse",
                                 "Namb_1",
@@ -323,10 +320,8 @@ if __name__ == '__main__':
         'scriptDuration': int((time.time()-ts)*1000),
         'input': dataStream
     }
-    print(json.dumps(output))
-
-
-
+    # print(json.dumps(output))
+    print(output['data']['object']['data']['Data'])
 
 
 
