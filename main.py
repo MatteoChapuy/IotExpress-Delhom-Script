@@ -4,6 +4,7 @@ import pandas as pd
 import json
 import time
 pd.set_option("display.max_columns", None)
+pd.set_option('display.expand_frame_repr', False)
 ### Inputs ###
 #
 # configuration : {
@@ -59,8 +60,8 @@ pd.set_option("display.max_columns", None)
 
 
 def get_timestamp(df):
-    # >> check IoTExpress format <<
-    df['timestamp'] = pd.to_datetime(df['timestamp'], format=' %d/%m/%Y %H:%M').astype('datetime64[s]')
+    df['date'] = pd.to_datetime(df['timestamp'], unit='ms', origin='unix')
+    df['hour'] = df['date'].dt.hour
     return df
 
 
@@ -71,6 +72,14 @@ def get_wind_velocity_class(df):
                               include_lowest=True,
                               labels=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 'excluded'])
     return df
+
+
+def filter_wind_direction(df, dir_min, dir_max):
+    return df[(df.wind_direction >= dir_min) & (df.wind_direction <= dir_max)]
+
+
+def filter_hour(df, t1, t2):
+    return df[(df.hour >= t1) & (df.hour <= t2)]
 
 
 def get_median_ambient(df):
@@ -87,7 +96,6 @@ def get_median_ambient(df):
 
 
 def get_median_residual(df):
-    print(df)
     Lres_med = []
     Vres_mean = []
     Nres = []
@@ -159,28 +167,30 @@ def get_emergence(df):
 if __name__ == '__main__':
 
     ### Format Input ###
-    ts = time.time()
-    rawConfiguration = sys.stdin.readline()
-    configuration = json.loads(rawConfiguration)
-    arguments = configuration['arguments']
+    # ts = time.time()
+    # rawConfiguration = sys.stdin.readline()
+    # configuration = json.loads(rawConfiguration)
+    # arguments = configuration['arguments']
+    #
+    # rawDataStream = sys.stdin.readline()
+    # dataStream = json.loads(rawDataStream)
+    # inputHeaders = {val: idx for idx, val in enumerate(
+    #     dataStream['data']['object']['data']['Headers'])}
+    # inputData = dataStream['data']['object']['data']['Data']
+    # inputDuration = dataStream['duration']
 
-    rawDataStream = sys.stdin.readline()
-    dataStream = json.loads(rawDataStream)
+    ### Load Inputs dev Delhom ###
+    ts = time.time()
+    with open('input_data/arguments.json', 'r') as f:
+        arguments = json.load(f)
+    with open('input_data/input.json', 'r') as f:
+        dataStream = json.load(f)
     inputHeaders = {val: idx for idx, val in enumerate(
         dataStream['data']['object']['data']['Headers'])}
     inputData = dataStream['data']['object']['data']['Data']
     inputDuration = dataStream['duration']
 
-    ### Load Inputs dev Delhom ###
-    # ts = time.time()
-    # with open('input_data/arguments.json', 'r') as f:
-    #     arguments = json.load(f)
-    # with open('input_data/input.json', 'r') as f:
-    #     dataStream = json.load(f)
-    # inputHeaders = {val: idx for idx, val in enumerate(
-    #     dataStream['data']['object']['data']['Headers'])}
-    # inputData = dataStream['data']['object']['data']['Data']
-    # inputDuration = dataStream['duration']
+
 
     # function specific treatement
     output_dict = {snValue: [] for snValue in inputData}
@@ -188,7 +198,11 @@ if __name__ == '__main__':
     header_tab = dict(zip(inputHeaders, ['timestamp', 'tse', 'chronogram', 'wind_direction', 'wind_velocity_mean', 'L50eq']))
     for snValue in inputData:
         df = pd.DataFrame(inputData[snValue], columns=header_tab.values())
+        df = df.drop(['tse'], axis=1)
         df = get_wind_velocity_class(df)
+        df = get_timestamp(df)
+        df = filter_hour(df, int(arguments["arguments"]["Heure_min"]), int(arguments["arguments"]["Heure_max"]))
+        df = filter_wind_direction(df, int(arguments["arguments"]["Direction_min"]), int(arguments["arguments"]["Direction_max"]))
         Lres_med, Vres_mean, Nres = get_median_residual(df)
         Lamb_med, Vamb_mean, Namb = get_median_ambient(df)
         Lres_med_cent = get_centered_median(Lres_med, Vres_mean, Nres)
