@@ -1,6 +1,6 @@
-{"arguments":{
+{
     "Heure_min": "7",
     "Heure_max": "22",
-    "Direction_min": "0",
+    "Direction_min": "350",
     "Direction_max": "360"
-}}
+}
